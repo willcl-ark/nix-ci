@@ -22,6 +22,7 @@
     {
       nixosConfigurations = {
         runner01 = mkRunner "r01" x86_64;
+        runner02 = mkRunner "r02" x86_64;
       };
     };
 }

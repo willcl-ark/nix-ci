@@ -4,18 +4,24 @@
   inputs.disko.inputs.nixpkgs.follows = "nixpkgs";
 
   outputs =
+    { nixpkgs, disko, ... }:
+
+    let
+      x86_64 = "x86_64-linux";
+
+      mkRunner =
+        name: arch:
+        nixpkgs.lib.nixosSystem {
+          system = arch;
+          modules = [
+            disko.nixosModules.disko
+            ./runner.nix
+          ];
+        };
+    in
     {
-      nixpkgs,
-      disko,
-      ...
-    }:
-    {
-      nixosConfigurations.hetzner-cloud = nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        modules = [
-          disko.nixosModules.disko
-          ./configuration.nix
-        ];
+      nixosConfigurations = {
+        runner01 = mkRunner "r01" x86_64;
       };
     };
 }

@@ -82,6 +82,7 @@
         pkgs.python3
       ]);
       DOCKER_HOST = "unix:///var/run/docker.sock";
+      RESTART_CI_DOCKER_BEFORE_RUN = "1";
     };
   };
 

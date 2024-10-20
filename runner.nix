@@ -107,6 +107,7 @@ in
           pkgs.cirrus-cli
           pkgs.docker
           pkgs.python3
+          pkgs.git
         ]
       );
       DOCKER_HOST = "unix:///var/run/docker.sock";

@@ -5,6 +5,7 @@ keys:
   # PGP key fingerprints of users allowed to read runner
   # secrets
   - &user_b10c  982a193e3ce0eed535e09023188cbb2648416ad5
+  - &user_will  67aa5b46e7af78053167fe343b8f814a784218f8
  
   # age pubkeys generated from the SSH host keys for each host
   - &runner01   age1t2ww0fg5euxmakper4zsw8hvtdvcxfd5r0avgvw5z9dvlspeh32qx4prl9
@@ -16,12 +17,14 @@ creation_rules:
     key_groups:
     - pgp:
       - *user_b10c
+      - *user_will
 
   # one rule for each runner
   - path_regex: sops/runner01\.yaml
     key_groups:
     - pgp:
       - *user_b10c
+      - *user_will
       age:
       - *runner01
 
@@ -29,5 +32,6 @@ creation_rules:
     key_groups:
     - pgp:
       - *user_b10c
+      - *user_will
       age:
       - *runner02

@@ -40,13 +40,18 @@
             disko.nixosModules.disko
             sops-nix.nixosModules.sops
             ./runner.nix
+            {
+              config._module.args = {
+                inherit name arch;
+              };
+            }
           ];
         };
     in
     {
       nixosConfigurations = {
-        runner01 = mkRunner "r01" x86_64;
-        runner02 = mkRunner "r02" x86_64;
+        runner01 = mkRunner "runner01" x86_64;
+        runner02 = mkRunner "runner02" x86_64;
       };
 
       # a shell with all needed tools

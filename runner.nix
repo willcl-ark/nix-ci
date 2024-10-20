@@ -5,6 +5,7 @@
   pkgs,
   name,
   arch,
+  type,
   ...
 }:
 let
@@ -15,6 +16,13 @@ in
     (modulesPath + "/installer/scan/not-detected.nix")
     (modulesPath + "/profiles/qemu-guest.nix")
     ./disk-config.nix
+  ];
+
+  assertions = [
+    {
+      assertion = !(type == "arm64" && arch != "aarch64-linux");
+      message = "can't use a type=${type} on a ${arch} host";
+    }
   ];
 
   networking.hostName = name;
@@ -82,7 +90,7 @@ in
     wants = [ "docker.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --name ${name} --token $CIRRUS_TOKEN --labels type=ax52_x86-64";
+      ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --name ${name} --token $CIRRUS_TOKEN --labels type=${type}";
       Restart = "always";
       User = config.users.users.cirrus-worker.name;
       EnvironmentFile = "${CIRRUS_WORKER_HOME}/cirrus.env";

@@ -1,0 +1,33 @@
+keys:
+  # After changing, run `sops updatekeys sops/*.yaml` to
+  # reencrypt the secrets with the new key(s)
+  
+  # PGP key fingerprints of users allowed to read runner
+  # secrets
+  - &user_b10c  982a193e3ce0eed535e09023188cbb2648416ad5
+ 
+  # age pubkeys generated from the SSH host keys for each host
+  - &runner01   age1t2ww0fg5euxmakper4zsw8hvtdvcxfd5r0avgvw5z9dvlspeh32qx4prl9
+  - &runner02   age1y5rueswq0f0dq2h2c2q76dlc77u443n5hhamk9yjgejzjf422pnq5s64y4
+
+creation_rules:
+
+  - path_regex: sops/bitcoin-core-ci-ssh\.config
+    key_groups:
+    - pgp:
+      - *user_b10c
+
+  # one rule for each runner
+  - path_regex: sops/runner01\.yaml
+    key_groups:
+    - pgp:
+      - *user_b10c
+      age:
+      - *runner01
+
+  - path_regex: sops/runner02\.yaml
+    key_groups:
+    - pgp:
+      - *user_b10c
+      age:
+      - *runner02

@@ -55,6 +55,7 @@
         { system, pkgs, ... }:
         {
           default = pkgs.mkShell {
+            sopsPGPKeyDirs = [ "${toString ./.}/sops/pubkeys" ];
             buildInputs = [
               pkgs.nixfmt-rfc-style
               pkgs.nixos-anywhere

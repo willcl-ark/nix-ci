@@ -50,12 +50,11 @@ in
 
   sops.defaultSopsFile = ./sops/${name}.yaml;
 
-  environment.systemPackages = map lib.lowPrio [
-    pkgs.ccache
-    pkgs.cirrus-cli
-    pkgs.curl
-    pkgs.gitMinimal
-    pkgs.nebula
+  environment.systemPackages = with pkgs; map lib.lowPrio [
+    ccache
+    curl
+    gitMinimal
+    htop
   ];
 
   # Use authorized keys supplied at runtime from the deployment command

@@ -14,13 +14,13 @@ This repository contains an encrypted ssh config for the hosts.
 Administrators can edit it with the following command:
 
 ```bash
-$ sops sops/bitcoin-core-ci-ssh.config
+$ sops sops/ssh-config
 ```
 
 To create a local, decrypted copy use:
 
 ```bash
-$ sops -d sops/bitcoin-core-ci-ssh.config > bitcoin-core-ci-ssh.config
+$ sops -d sops/ssh-config > bitcoin-core-ci-ssh.config
 ```
 
 You can `Include` this config in your personal ssh config (usually in
@@ -40,13 +40,13 @@ register a new runner and install NixOS onto it, for which we use
 1. Add a new entry for the host to the encrypted ssh config by running:
 
    ```bash
-   $ sops sops/bitcoin-core-ci-ssh.config
+   $ sops sops/ssh-config
    ```
-   
+
    and then updating you local, decrypted copy of it with
-   
+
    ```bash
-   $ sops -d sops/bitcoin-core-ci-ssh.config > bitcoin-core-ci-ssh.config
+   $ sops -d sops/ssh-config > bitcoin-core-ci-ssh.config
    ```
 
 2. Add the new runner in `flake.nix` (e.g. copy `runner01`)
@@ -55,7 +55,7 @@ register a new runner and install NixOS onto it, for which we use
     ```bash
     $ nixos-anywhere --flake .#runnerXX root@runnerXX
     ```
-   
+
 4. Once `nixos-anywhere` finishes, the host will reboot into NixOS.
    However, the host does not have any secrets (e.g. `cirrus-token`)
    yet. To get the `age` pubkey of the runner, run:

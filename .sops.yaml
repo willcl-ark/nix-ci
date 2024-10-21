@@ -13,7 +13,7 @@ keys:
 
 creation_rules:
 
-  - path_regex: sops/bitcoin-core-ci-ssh\.config
+  - path_regex: sops/ssh-config
     key_groups:
     - pgp:
       - *user_b10c

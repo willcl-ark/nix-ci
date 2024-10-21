@@ -73,6 +73,7 @@
           default = pkgs.mkShell {
             sopsPGPKeyDirs = [ "${toString ./.}/sops/pubkeys" ];
             buildInputs = [
+              pkgs.nixos-rebuild
               pkgs.nixfmt-rfc-style
               pkgs.nixos-anywhere
               (pkgs.callPackage sops-nix { }).sops-import-keys-hook

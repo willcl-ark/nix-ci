@@ -1,15 +1,16 @@
 keys:
   # After changing, run `sops updatekeys sops/*.yaml` to
-  # reencrypt the secrets with the new key(s)
-  
+  # re-encrypt the secrets with the new key(s)
+
   # PGP key fingerprints of users allowed to read runner
   # secrets
   - &user_b10c  982a193e3ce0eed535e09023188cbb2648416ad5
   - &user_will  67aa5b46e7af78053167fe343b8f814a784218f8
- 
+
   # age pubkeys generated from the SSH host keys for each host
   - &runner01   age1t2ww0fg5euxmakper4zsw8hvtdvcxfd5r0avgvw5z9dvlspeh32qx4prl9
   - &runner02   age1y5rueswq0f0dq2h2c2q76dlc77u443n5hhamk9yjgejzjf422pnq5s64y4
+  - &runner03   age1smfgtkwz0u5drvsqj2tkvlvm2g6aaq78efwsmc3u6j7rtnjndvjszc4muc
 
 creation_rules:
 
@@ -35,3 +36,11 @@ creation_rules:
       - *user_will
       age:
       - *runner02
+
+  - path_regex: sops/runner03\.yaml
+    key_groups:
+    - pgp:
+      - *user_b10c
+      - *user_will
+      age:
+      - *runner03

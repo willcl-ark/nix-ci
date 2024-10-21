@@ -8,7 +8,7 @@ package manager installed on their host system.
 
 Once nix is installed, you'll need to enable two experimental features.
 The `nix-command` and the `flakes` feature. From there on, you can use
-`nix develop` to spawn a shell with all needed dependencies. 
+`nix develop` to spawn a shell with all needed dependencies.
 
 This repository contains an encrypted ssh config for the hosts.
 Administrators can edit it with the following command:
@@ -50,23 +50,16 @@ register a new runner and install NixOS onto it, for which we use
    ```
 
 2. Add the new runner in `flake.nix` (e.g. copy `runner01`)
-3. Install NixOS on the host with `nixos-anywhere`:
+3. Install NixOS on the host with `install.sh`:
 
     ```bash
-    $ nixos-anywhere --flake .#runnerXX root@runnerXX
+    $ sh scripts/install.sh runnerXX
     ```
 
-4. Once `nixos-anywhere` finishes, the host will reboot into NixOS.
-   However, the host does not have any secrets (e.g. `cirrus-token`)
-   yet. To get the `age` pubkey of the runner, run:
-
-    ```bash
-    $ sh scripts/get-server-age-pubkey.sh runnerXX
-    ```
-
-   Add this pubkey (starting with `age1..`) to the `.sops.yaml` file
-   under the `keys` section and create a new rule under the
-   `creation_rules` section.
+4. Once `install.sh` finishes, it will show you the hosts `age` pubkey. This key
+   is used to encrypt the hosts secrets (e.g. `cirrus-token`). Add this pubkey
+   (starting with `age1..`) to the `.sops.yaml` file under the `keys` section
+   and create a new rule under the `creation_rules` section.
 
    Create a secrets file with `sops sops/runnerXX.yaml` and paste
    the following template.
@@ -75,12 +68,11 @@ register a new runner and install NixOS onto it, for which we use
    cirrus.env: CIRRUS_TOKEN=<cirrus-token>
    ```
 
-   Replace `<cirrus-token>` with a Cirrus CI persistent worker pool
-   *Registration Token*. You can reuse the token from the other
-   runners.
+   Replace `<cirrus-token>` with a Cirrus CI persistent worker pool *Registration
+   Token*. You can reuse the token from the other runners.
 
-5. Add all new files (`git status`) to git and then redeploy `runnerXX`
-   once.
+5. Add all new files (`git status`) to git and then deploy the host once to provision
+   the secrets.
 
    ```bash
    $ sh deploy.sh runnerXX

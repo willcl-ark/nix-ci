@@ -31,6 +31,7 @@
         };
 
       x86_64 = "x86_64-linux";
+      arm64 = "aarch64-linux";
 
       # From https://github.com/bitcoin/bitcoin/blob/e8f72aefd20049eac81b150e7f0d33709acd18ed/.cirrus.yml#L15-L18
       # The following specific types should exist, with the following requirements:
@@ -63,6 +64,7 @@
       nixosConfigurations = {
         runner01 = mkRunner "runner01" runnerType.small x86_64;
         runner02 = mkRunner "runner02" runnerType.medium x86_64;
+        runner03 = mkRunner "runner03" runnerType.arm64 arm64;
       };
 
       # a shell with all needed tools

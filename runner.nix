@@ -10,6 +10,8 @@
 }:
 let
   CIRRUS_WORKER_HOME = "/var/lib/cirrus-worker";
+  secretsFile = ./sops/${name}.yaml;
+  secretsProvisioned = builtins.pathExists secretsFile;
 in
 {
   imports = [
@@ -48,7 +50,20 @@ in
     };
   };
 
-  sops.defaultSopsFile = ./sops/${name}.yaml;
+  sops = {
+    # during installation, we don't have the secrets yet. Don't fail
+    # the deployment, but warn the user on all deployments.
+    defaultSopsFile = if secretsProvisioned then secretsFile else null;
+    secrets = if secretsProvisioned then {
+      "cirrus.env" = {
+        mode = "0400";
+        owner = config.users.users.cirrus-worker.name;
+        group = config.users.groups.cirrus-worker.name;
+        path = "${CIRRUS_WORKER_HOME}/cirrus.env";
+        restartUnits = [ "cirrus-worker.service" ];
+      };
+    } else lib.warn "\n\n\t\t Secrets aren't provisioned - without secrets, the CI runner will not work.\n\n" {};
+  };
 
   environment.systemPackages = with pkgs; map lib.lowPrio [
     ccache
@@ -71,14 +86,6 @@ in
         # willcl-ark
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH988C5DbEPHfoCphoW23MWq9M6fmA4UTXREiZU0J7n0 will.hetzner@temp.com"
       ];
-
-  # The cirrus worker requires a token to connect.
-  sops.secrets."cirrus.env" = {
-    mode = "0400";
-    owner = config.users.users.cirrus-worker.name;
-    group = config.users.groups.cirrus-worker.name;
-    path = "${CIRRUS_WORKER_HOME}/cirrus.env";
-  };
 
   systemd.services.cirrus-worker = {
     description = "Cirrus CI Worker";

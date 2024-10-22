@@ -1,4 +1,3 @@
-# Example to create a bios compatible gpt partition
 { lib, ... }:
 {
   disko.devices = {
@@ -22,6 +21,12 @@
               format = "vfat";
               mountpoint = "/boot";
             };
+          };
+          swap = {
+            size = "16G";
+            content = {
+              type = "swap";
+              discardPolicy = "both";
           };
           root = {
             name = "root";

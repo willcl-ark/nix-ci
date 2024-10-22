@@ -2,31 +2,90 @@
 
 ## Administrator prerequisites
 
-An administrator wishing to make this deployment will require a local installation of the [`Nix`](https://nixos.org/download/) (top of page) package manager installed on their host system.
+An administrator wishing to make this deployment will require a local
+installation of the [`Nix`](https://nixos.org/download/) (top of page)
+package manager installed on their host system.
+
+Once nix is installed, you'll need to enable two experimental features.
+The `nix-command` and the `flakes` feature. From there on, you can use
+`nix develop` to spawn a shell with all needed dependencies.
+
+This repository contains an encrypted ssh config for the hosts.
+Administrators can edit it with the following command:
+
+```bash
+$ sops sops/ssh-config
+```
+
+To create a local, decrypted copy use:
+
+```bash
+$ sops -d sops/ssh-config > bitcoin-core-ci-ssh.config
+```
+
+You can `Include` this config in your personal ssh config (usually in
+`~/.ssh/config`) with the following:
+
+```ssh-config
+Include /path/to/bitcoin-core-ci-ssh.config
+```
 
 ## Provision a new runner
 
-(Most) hosting providers do not yet provide hosts with [NixOS](https://nixos.org/download/) (bottom of page) available as an OS.
-Therefore the first step is to register a new runner and install NixOS onto it, for which we use [`nixos-anywhere`](https://github.com/nix-community/nixos-anywhere).
+(Most) hosting providers do not yet provide hosts with [NixOS](https://nixos.org/download/)
+(bottom of page) available as an OS. Therefore the first step is to
+register a new runner and install NixOS onto it, for which we use
+[`nixos-anywhere`](https://github.com/nix-community/nixos-anywhere).
 
-1. Add the new runner in *flake.nix* (e.g. copy `runner01`)
-2. Deploy NixOS onto the host `nixos-anywhere` and deploy its configuration:
+1. Add a new entry for the host to the encrypted ssh config by running:
+
+   ```bash
+   $ sops sops/ssh-config
+   ```
+
+   and then updating you local, decrypted copy of it with
+
+   ```bash
+   $ sops -d sops/ssh-config > bitcoin-core-ci-ssh.config
+   ```
+
+2. Add the new runner in `flake.nix` (e.g. copy `runner01`)
+3. Install NixOS on the host with `install.sh`:
 
     ```bash
-    $ nix-shell -p nixos-anywhere
-    [nix-shell:~/]$ nixos-anywhere --flake .#runnerXX root@<ip address>
+    $ sh scripts/install.sh runnerXX
     ```
+
+4. Once `install.sh` finishes, it will show you the hosts `age` pubkey. This key
+   is used to encrypt the hosts secrets (e.g. `cirrus-token`). Add this pubkey
+   (starting with `age1..`) to the `.sops.yaml` file under the `keys` section
+   and create a new rule under the `creation_rules` section.
+
+   Create a secrets file with `sops sops/runnerXX.yaml` and paste
+   the following template.
+
+   ```yaml
+   cirrus.env: CIRRUS_TOKEN=<cirrus-token>
+   ```
+
+   Replace `<cirrus-token>` with a Cirrus CI persistent worker pool *Registration
+   Token*. You can reuse the token from the other runners.
+
+5. Add all new files (`git status`) to git and then deploy the host once to provision
+   the secrets.
+
+   ```bash
+   $ sh deploy.sh runnerXX
+   ```
 
 ## Update an existing runner
 
-To update `runner01`:
+To update, for example, runner `runner01`:
 
 ```bash
-$ nix-shell -p nixos-rebuild
-[nix-shell:~/]$ nixos-rebuild switch --flake .#runner01 --target-host root@<ip address> --show-trace
+$ sh deploy.sh runner01
 ```
 
 ## To-do
 
-- Deploy the cirrus worker token to */etc/cirrus/worker.env*
 - Setup a global shared `remote_dir` for `ccache`.

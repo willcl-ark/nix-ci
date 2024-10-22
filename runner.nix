@@ -40,6 +40,17 @@
     pkgs.nebula
   ];
 
+  # Set a 16GB swap file to avoid some OOM
+  # Hopefully we can remove this on larger runners
+  {
+    swapDevices = [
+      {
+        device = "/swapfile";
+        size = 16*1024;  # 16GB
+      }
+    ];
+  }
+
   # Use authorized keys supplied at runtime from the deployment command
   users.users.root.openssh.authorizedKeys.keys =
     let

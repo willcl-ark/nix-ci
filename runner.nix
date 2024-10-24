@@ -11,11 +11,25 @@
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
-  options.hardware = {
+  options.name = {
     workerType = lib.mkOption {
       type = lib.types.str;
-      description = "Type of worker for Cirrus CI labels";
-      example = "ax52_x86-64";
+      description = "runner name";
+      example = "ax52";
+    };
+  };
+  options.cpu = {
+    workerType = lib.mkOption {
+      type = lib.types.number;
+      description = "How much CPU the hardware has (use half core count for shared vCPUs)";
+      example = "1";
+    };
+  };
+  options.ram = {
+    workerType = lib.mkOption {
+      type = lib.types.int;
+      description = "Ram available (MB)";
+      example = "2000";
     };
   };
 

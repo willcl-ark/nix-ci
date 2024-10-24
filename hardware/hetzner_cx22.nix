@@ -67,5 +67,7 @@
     kernelModules = [ "kvm-intel" ];
     extraModulePackages = [ ];
   };
-  hardware.workerType = "cx22_x86-64";
+  hardware.name = "cx22";
+  hardware.cpu = "1";
+  hardware.ram = "2000";
 }

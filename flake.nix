@@ -10,19 +10,33 @@
       x86_64 = "x86_64-linux";
 
       mkRunner =
-        name: arch:
+        { name
+        , arch
+        , hardware
+        }:
         nixpkgs.lib.nixosSystem {
           system = arch;
           modules = [
             disko.nixosModules.disko
             ./runner.nix
+            # Import the specified hardware configuration
+            (./hardware + "/${hardware}.nix")
           ];
         };
     in
     {
       nixosConfigurations = {
-        runner01 = mkRunner "r01" x86_64;
-        runner02 = mkRunner "r02" x86_64;
+        # runners with different hardware
+        runner01 = mkRunner {
+          name = "r01";
+          arch = x86_64;
+          hardware = "hetzner_ax52";
+        };
+        runner02 = mkRunner {
+          name = "r02";
+          arch = x86_64;
+          hardware = "hetzner_cx22";
+        };
       };
     };
 }

@@ -5,14 +5,14 @@
 
   outputs =
     { nixpkgs, disko, ... }:
-
     let
       x86_64 = "x86_64-linux";
 
       mkRunner =
-        { name
-        , arch
-        , hardware
+        {
+          name,
+          arch,
+          hardware,
         }:
         nixpkgs.lib.nixosSystem {
           system = arch;
@@ -25,6 +25,7 @@
         };
     in
     {
+      formatter.x86_64-linux = nixpkgs.legacyPackages.x86_64-linux.nixfmt-rfc-style;
       nixosConfigurations = {
         # runners with different hardware
         runner01 = mkRunner {

@@ -7,8 +7,8 @@ An administrator wishing to make this deployment will require a local installati
 ## Available Hardware Configurations
 
 Currently supported hardware types:
-- Hetzner AX52 (dual disk configuration)
-- Hetzner AX22 (single disk configuration)
+- Hetzner ax52 (dual disk configuration)
+- Hetzner cx22 (single disk configuration)
 
 ## Provision a new runner
 
@@ -26,26 +26,35 @@ Therefore the first step is to register a new runner and install NixOS onto it, 
 
 2. Deploy NixOS onto the host using `nixos-anywhere`:
     ```bash
-    $ nix run github:nix-community/nixos-anywhere -- --flake .#runnerXX root@<ip address>
+    $ nix-shell -p nixos-anywhere
+    [nix-shell:~/]$ nixos-anywhere --flake .#runnerXX root@<ip address>
+    ```
+
+3. Deploy the CIRRUS_WORKER_TOKEN via an "impure" rebuild (which can read env vars):
+    ```bash
+    $ nix-shell -p nixos-rebuild
+    [nix-shell:~/]$ CIRRUS_WORKER_TOKEN="your_token" nixos-rebuild switch --flake .#runnerXX --target-host root@<ip address> --impure --show-trace
     ```
 
 ## Update an existing runner
 
-To update an existing runner:
+To update an existing runner with a new config is the same as step 3. above:
+
 ```bash
-$ nix run nixpkgs#nixos-rebuild -- switch --flake .#runner01 --target-host root@<ip address> --show-trace
+$ nix-shell -p nixos-rebuild
+[nix-shell:~/]$ CIRRUS_WORKER_TOKEN="your_token" nixos-rebuild switch --flake .#runnerXX --target-host root@<ip address> --impure --show-trace
 ```
 
 ## Adding New Hardware Configurations
 
 To add support for new hardware:
 
-1. Create a new hardware configuration file in `hardware/` directory
-2. Set the appropriate `hardware.workerType` for Cirrus CI labeling
+1. Create a new hardware configuration file in *hardware/* directory
+2. Configure the worker settings (`name`, `cpu`, `ram`) for Cirrus CI labeling
 3. Configure the disk layout and hardware-specific settings
 4. Reference the new hardware config in your runner configuration in `flake.nix`
 
 ## To-do
 
-- Deploy the cirrus worker token to */etc/cirrus/worker.env*
-- (optional) setup a global shared `remote_dir` for `ccache`
+- [x] Deploy the cirrus worker token to */etc/cirrus/worker.env*
+- [ ] (optional) setup a global shared `remote_dir` for `ccache`

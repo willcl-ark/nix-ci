@@ -90,7 +90,9 @@
     kernelModules = [ "kvm-intel" ];
     extraModulePackages = [ ];
   };
-  hardware.name = "ax22";
-  hardware.cpu = "8";
-  hardware.ram = "2000";
+  worker = {
+    name = "ax52";
+    cpu = "8";
+    ram = "16000";
+  };
 }

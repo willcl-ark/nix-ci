@@ -5,30 +5,29 @@
   pkgs,
   ...
 }:
+let
+  cirrusToken = builtins.getEnv "CIRRUS_WORKER_TOKEN";
+in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
     (modulesPath + "/profiles/qemu-guest.nix")
   ];
 
-  options.name = {
-    workerType = lib.mkOption {
+  options.worker = {
+    name = lib.mkOption {
       type = lib.types.str;
-      description = "runner name";
+      description = "worker name";
       example = "ax52";
     };
-  };
-  options.cpu = {
-    workerType = lib.mkOption {
-      type = lib.types.number;
-      description = "How much CPU the hardware has (use half core count for shared vCPUs)";
+    cpu = lib.mkOption {
+      type = lib.types.str;
+      description = "How much CPU the worker has (use half core count for shared vCPUs)";
       example = "1";
     };
-  };
-  options.ram = {
-    workerType = lib.mkOption {
-      type = lib.types.int;
-      description = "Ram available (MB)";
+    ram = lib.mkOption {
+      type = lib.types.str;
+      description = "Total ram available (MB) to the worker";
       example = "2000";
     };
   };
@@ -77,19 +76,17 @@
         "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH988C5DbEPHfoCphoW23MWq9M6fmA4UTXREiZU0J7n0 will.hetzner@temp.com"
       ];
 
-    # The cirrus worker requires a token to connect.
-    # Currently this requires manual positioning in /etc/cirrus/worker.env in the form:
-    # CIRRUS_TOKEN=<token>
     systemd.services.cirrus-worker = {
       description = "Cirrus CI Worker";
       after = [ "network.target" "docker.service" ];
       wants = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --token $CIRRUS_TOKEN --config /etc/cirrus/worker.yaml";
+        ExecStartPre = "/run/current-system/sw/bin/test -f /etc/cirrus/worker.yaml";
+        ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --file /etc/cirrus/worker.yaml";
         Restart = "always";
+        RestartSec="10";
         User = "cirrus-worker";
-        EnvironmentFile = "/etc/cirrus/worker.env";
       };
       environment = {
         XDG_CACHE_HOME = "/var/lib/cirrus-worker/.cache";
@@ -126,23 +123,25 @@
       cirrusWorkerConfig = ''
         mkdir -p /etc/cirrus
         cat > /etc/cirrus/worker.yaml << EOF
-name: "${config.hardware.name}"
+token: ${cirrusToken}
+
+name: "${config.worker.name}"
 
 labels:
-  type: ${config.hardware.name}
-  cpu: "${config.hardware.cpu}"
-  ram: "${config.hardware.ram}"
+  type: ${config.worker.name}
+  cpu: "${config.worker.cpu}"
+  ram: "${config.worker.ram}"
 
 resources:
-  cpu: ${config.hardware.cpu}
-  memory: ${config.hardware.ram}
+  cpu: ${config.worker.cpu}
+  memory: ${config.worker.ram}
 EOF
-        chmod 644 /etc/cirrus/worker.yaml
+
+        chown -R cirrus-worker:cirrus-worker /etc/cirrus
+        chmod 600 /etc/cirrus/worker.yaml
       '';
 
       cirrusWorkerDir = ''
-        mkdir -p /etc/cirrus
-        chmod 755 /etc/cirrus
         mkdir -p /var/lib/cirrus-worker/.cache
         chown cirrus-worker:cirrus-worker /var/lib/cirrus-worker/.cache
         chmod 700 /var/lib/cirrus-worker/.cache

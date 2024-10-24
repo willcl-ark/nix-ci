@@ -86,7 +86,7 @@
       wants = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --token $CIRRUS_TOKEN --labels type=${config.hardware.workerType}";
+        ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --token $CIRRUS_TOKEN --config /etc/cirrus/worker.yaml";
         Restart = "always";
         User = "cirrus-worker";
         EnvironmentFile = "/etc/cirrus/worker.env";
@@ -121,7 +121,25 @@
     users.groups.cirrus-worker = {};
 
     # Create /etc/cirrus directory and /var/lib/cirrus-worker/.cache
+    # Generate the Cirrus worker config file
     system.activationScripts = {
+      cirrusWorkerConfig = ''
+        mkdir -p /etc/cirrus
+        cat > /etc/cirrus/worker.yaml << EOF
+name: "${config.hardware.name}"
+
+labels:
+  type: ${config.hardware.name}
+  cpu: "${config.hardware.cpu}"
+  ram: "${config.hardware.ram}"
+
+resources:
+  cpu: ${config.hardware.cpu}
+  memory: ${config.hardware.ram}
+EOF
+        chmod 644 /etc/cirrus/worker.yaml
+      '';
+
       cirrusWorkerDir = ''
         mkdir -p /etc/cirrus
         chmod 755 /etc/cirrus

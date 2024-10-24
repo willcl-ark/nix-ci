@@ -7,6 +7,8 @@
 }:
 let
   cirrusToken = builtins.getEnv "CIRRUS_WORKER_TOKEN";
+  cirrusConfigDir = "/var/lib/cirrus-worker";
+  cirrusConfigFile = "${cirrusConfigDir}/config.yaml";
 in
 {
   imports = [
@@ -82,14 +84,14 @@ in
       wants = [ "docker.service" ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
-        ExecStartPre = "/run/current-system/sw/bin/test -f /etc/cirrus/worker.yaml";
-        ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --file /etc/cirrus/worker.yaml";
+        ExecStartPre = "/run/current-system/sw/bin/test -f ${cirrusConfigFile}";
+        ExecStart = "${pkgs.cirrus-cli}/bin/cirrus worker run --file ${cirrusConfigFile}";
         Restart = "always";
-        RestartSec="10";
+        RestartSec="5";
         User = "cirrus-worker";
       };
       environment = {
-        XDG_CACHE_HOME = "/var/lib/cirrus-worker/.cache";
+        XDG_CACHE_HOME = "${cirrusConfigDir}/.cache";
         PATH = lib.mkForce (lib.makeBinPath [
           pkgs.bash
           pkgs.coreutils
@@ -121,8 +123,8 @@ in
     # Generate the Cirrus worker config file
     system.activationScripts = {
       cirrusWorkerConfig = ''
-        mkdir -p /etc/cirrus
-        cat > /etc/cirrus/worker.yaml << EOF
+        mkdir -p ${cirrusConfigDir}
+        cat > ${cirrusConfigFile} << EOF
 token: ${cirrusToken}
 
 name: "${config.worker.name}"
@@ -137,16 +139,16 @@ resources:
   memory: ${config.worker.ram}
 EOF
 
-        chown -R cirrus-worker:cirrus-worker /etc/cirrus
-        chmod 600 /etc/cirrus/worker.yaml
+        chown cirrus-worker:cirrus-worker ${cirrusConfigFile}
+        chmod 600 ${cirrusConfigFile}
       '';
 
-      cirrusWorkerDir = ''
-        mkdir -p /var/lib/cirrus-worker/.cache
-        chown cirrus-worker:cirrus-worker /var/lib/cirrus-worker/.cache
-        chmod 700 /var/lib/cirrus-worker/.cache
-      '';
-    };
+    cirrusWorkerDir = ''
+      mkdir -p ${cirrusConfigDir}/.cache
+      chown -R cirrus-worker:cirrus-worker ${cirrusConfigDir}
+      chmod 700 ${cirrusConfigDir}/.cache
+    '';
+  };
 
     system.stateVersion = "24.05";
 
